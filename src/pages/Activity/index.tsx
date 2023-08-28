@@ -1,4 +1,4 @@
-import { ActivityContainer, ActivityList } from './styles'
+import { ActivityContainer, ActivityList, Status } from './styles'
 
 export function Activity() {
   return (
@@ -19,7 +19,25 @@ export function Activity() {
               <td>Task</td>
               <td>20 min</td>
               <td>2 months ago</td>
-              <td>Finished at</td>
+              <td>
+                <Status statusColor="red">Interrupted</Status>
+              </td>
+            </tr>
+            <tr>
+              <td>Task</td>
+              <td>20 min</td>
+              <td>2 months ago</td>
+              <td>
+                <Status statusColor="yellow">Ongoing</Status>
+              </td>
+            </tr>
+            <tr>
+              <td>Task</td>
+              <td>20 min</td>
+              <td>2 months ago</td>
+              <td>
+                <Status statusColor="green">Finished</Status>
+              </td>
             </tr>
           </tbody>
         </table>
