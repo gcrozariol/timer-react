@@ -80,6 +80,7 @@ export function CyclesContextProvider({
       state.map((cycle) => {
         if (cycle.id === activeCycleId) {
           setActiveCycleId(null)
+          document.title = 'Ignite Timer'
           return { ...cycle, finishedDate: new Date() }
         } else {
           return cycle
