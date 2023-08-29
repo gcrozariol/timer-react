@@ -18,11 +18,11 @@ interface CyclesContextType {
   cycles: Cycle[]
   activeCycle: Cycle | undefined
   activeCycleId: string | null
-  markCurrentCycleAsFinished: () => void
   amountOfSecondsPassed: number
   setSecondsPassed: (seconds: number) => void
   createNewCycle: (data: CreateCycleData) => void
   interruptCurrentCycle: () => void
+  markCurrentCycleAsFinished: () => void
 }
 
 export const CyclesContext = createContext({} as CyclesContextType)
@@ -31,48 +31,73 @@ interface CyclesContextProviderProps {
   children: ReactNode
 }
 
+interface CyclesReducerState {
+  cycles: Cycle[]
+  activeCycleId: string | null
+}
+
 interface CyclesReducerAction {
   type: 'ADD_NEW_CYCLE' | 'INTERRUPT_CYCLE' | 'MARK_CYCLE_AS_COMPLETED'
-  payload: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload?: any
 }
 
 export function CyclesContextProvider({
   children,
 }: CyclesContextProviderProps) {
-  const [cycles, dispatch] = useReducer(
-    (state: Cycle[], action: CyclesReducerAction) => {
+  const [cyclesState, dispatch] = useReducer(
+    (state: CyclesReducerState, action: CyclesReducerAction) => {
+      const { cycles, activeCycleId } = state
       const { type, payload } = action
 
       switch (type) {
         case 'ADD_NEW_CYCLE':
-          return [...state, payload.newCycle]
+          return {
+            ...state,
+            cycles: [...cycles, payload.newCycle],
+            activeCycleId: payload.newCycle.id,
+          }
 
         case 'INTERRUPT_CYCLE':
-          return state.map((cycle) => {
-            if (cycle.id === payload.activeCycleId) {
-              return { ...cycle, interruptedDate: new Date() }
-            } else {
-              return cycle
-            }
-          })
+          document.title = 'Ignite Timer'
+
+          return {
+            ...state,
+            cycles: cycles.map((cycle) => {
+              if (cycle.id === activeCycleId) {
+                return { ...cycle, interruptedDate: new Date() }
+              } else {
+                return cycle
+              }
+            }),
+            activeCycleId: null,
+          }
 
         case 'MARK_CYCLE_AS_COMPLETED':
-          return state.map((cycle) => {
-            if (cycle.id === payload.activeCycleId) {
-              return { ...cycle, finishedDate: new Date() }
-            } else {
-              return cycle
-            }
-          })
+          return {
+            ...state,
+            cycles: cycles.map((cycle) => {
+              if (cycle.id === activeCycleId) {
+                return { ...cycle, finishedDate: new Date() }
+              } else {
+                return cycle
+              }
+            }),
+            activeCycleId: null,
+          }
 
         default:
           return state
       }
     },
-    [],
+    {
+      cycles: [],
+      activeCycleId: null,
+    },
   )
 
-  const [activeCycleId, setActiveCycleId] = useState<string | null>(null)
+  const { cycles, activeCycleId } = cyclesState
+
   const [amountOfSecondsPassed, setAmountOfSecondsPassed] = useState(0)
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId)
@@ -98,30 +123,15 @@ export function CyclesContextProvider({
       },
     })
 
-    setActiveCycleId(id)
     setAmountOfSecondsPassed(0)
   }
 
   function interruptCurrentCycle() {
-    dispatch({
-      type: 'INTERRUPT_CYCLE',
-      payload: {
-        activeCycleId,
-      },
-    })
-
-    document.title = 'Ignite Timer'
-
-    setActiveCycleId(null)
+    dispatch({ type: 'INTERRUPT_CYCLE' })
   }
 
   function markCurrentCycleAsFinished() {
-    dispatch({
-      type: 'MARK_CYCLE_AS_COMPLETED',
-      payload: {
-        activeCycleId,
-      },
-    })
+    dispatch({ type: 'MARK_CYCLE_AS_COMPLETED' })
   }
 
   return (
@@ -130,11 +140,11 @@ export function CyclesContextProvider({
         cycles,
         activeCycle,
         activeCycleId,
-        markCurrentCycleAsFinished,
         amountOfSecondsPassed,
         setSecondsPassed,
         createNewCycle,
         interruptCurrentCycle,
+        markCurrentCycleAsFinished,
       }}
     >
       {children}
